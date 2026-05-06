@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.blueseacode.dao.mapper.DemDemandMapper">
+
+    <resultMap id="DemandVOMap" type="org.blueseacode.dao.entity.DemDemand">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="category" property="category"/>
+        <result column="budget_min" property="budgetMin"/>
+        <result column="budget_max" property="budgetMax"/>
+        <result column="deadline" property="deadline"/>
+        <result column="contact" property="contact"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="order_count" property="orderCount"/>
+        <result column="taker_id" property="takerId"/>
+        <result column="status" property="status"/>
+        <result column="reject_reason" property="rejectReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+        <!-- 联表字段 -->
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="taker_nickname" property="takerNickname"/>
+        <result column="taker_avatar" property="takerAvatar"/>
+    </resultMap>
+
+    <select id="selectDemandPage" resultMap="DemandVOMap">
+        SELECT d.*,
+               u.nickname, u.avatar,
+               tu.nickname AS taker_nickname, tu.avatar AS taker_avatar
+        FROM dem_demand d
+        LEFT JOIN sys_user u ON d.user_id = u.id
+        LEFT JOIN sys_user tu ON d.taker_id = tu.id
+        WHERE d.deleted = 0
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (d.title LIKE CONCAT('%', #{query.keyword}, '%')
+                 OR d.description LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.category != null and query.category != ''">
+            AND d.category = #{query.category}
+        </if>
+        <if test="query.status != null">
+            AND d.status = #{query.status}
+        </if>
+        <if test="query.status == null and query.userId == null and query.takerId == null">
+            AND d.status = 1
+        </if>
+        <if test="query.userId != null">
+            AND d.user_id = #{query.userId}
+        </if>
+        <if test="query.takerId != null">
+            AND d.taker_id = #{query.takerId}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="query.sortBy == 'budget'">d.budget_max DESC</when>
+            <when test="query.sortBy == 'deadline'">d.deadline ASC</when>
+            <otherwise>d.create_time DESC</otherwise>
+        </choose>
+    </select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.blueseacode.dao.mapper.DemOrderMapper">
+
+    <resultMap id="OrderVOMap" type="org.blueseacode.dao.entity.DemOrder">
+        <id column="id" property="id"/>
+        <result column="demand_id" property="demandId"/>
+        <result column="user_id" property="userId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+    </resultMap>
+
+    <select id="selectOrderPage" resultMap="OrderVOMap">
+        SELECT o.*, u.nickname, u.avatar
+        FROM dem_order o
+        LEFT JOIN sys_user u ON o.user_id = u.id
+        WHERE o.demand_id = #{demandId}
+        ORDER BY o.create_time ASC
+    </select>
+
+</mapper>

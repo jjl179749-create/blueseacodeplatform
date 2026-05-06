@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.blueseacode.dao.mapper.ResResourceMapper">
+
+    <resultMap id="ResourceVOMap" type="org.blueseacode.dao.entity.ResResource">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="file_name" property="fileName"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="file_format" property="fileFormat"/>
+        <result column="download_points" property="downloadPoints"/>
+        <result column="download_count" property="downloadCount"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="collect_count" property="collectCount"/>
+        <result column="status" property="status"/>
+        <result column="reject_reason" property="rejectReason"/>
+        <result column="sort" property="sort"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <select id="selectResourcePage" resultMap="ResourceVOMap">
+        SELECT r.*, u.nickname, u.avatar, c.name AS category_name
+        FROM res_resource r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        LEFT JOIN res_category c ON r.category_id = c.id
+        WHERE r.deleted = 0
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (r.title LIKE CONCAT('%', #{query.keyword}, '%')
+                 OR r.description LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.categoryId != null">
+            AND r.category_id = #{query.categoryId}
+        </if>
+        <if test="query.userId != null">
+            AND r.user_id = #{query.userId}
+        </if>
+        <if test="query.status != null">
+            AND r.status = #{query.status}
+        </if>
+        <if test="query.status == null and query.userId == null">
+            AND r.status = 1
+        </if>
+        <if test="query.minPoints != null">
+            AND r.download_points &gt;= #{query.minPoints}
+        </if>
+        <if test="query.maxPoints != null">
+            AND r.download_points &lt;= #{query.maxPoints}
+        </if>
+        ORDER BY r.sort DESC,
+        <choose>
+            <when test="query.sortBy == 'download'">r.download_count DESC</when>
+            <when test="query.sortBy == 'popular'">r.view_count DESC</when>
+            <otherwise>r.create_time DESC</otherwise>
+        </choose>
+    </select>
+
+</mapper>

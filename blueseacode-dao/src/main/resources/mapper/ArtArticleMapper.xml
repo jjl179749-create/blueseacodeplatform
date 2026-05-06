@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.blueseacode.dao.mapper.ArtArticleMapper">
+
+    <resultMap id="ArticleVOMap" type="org.blueseacode.dao.entity.ArtArticle">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="summary" property="summary"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="content" property="content"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="collect_count" property="collectCount"/>
+        <result column="is_comment" property="isComment"/>
+        <result column="status" property="status"/>
+        <result column="reject_reason" property="rejectReason"/>
+        <result column="sort" property="sort"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+        <!-- 联表字段 -->
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <select id="selectArticlePage" resultMap="ArticleVOMap">
+        SELECT a.*, u.nickname, u.avatar, c.name AS category_name
+        FROM art_article a
+        LEFT JOIN sys_user u ON a.user_id = u.id
+        LEFT JOIN art_category c ON a.category_id = c.id
+        WHERE a.deleted = 0
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (a.title LIKE CONCAT('%', #{query.keyword}, '%')
+                 OR a.summary LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        <if test="query.categoryId != null">
+            AND a.category_id = #{query.categoryId}
+        </if>
+        <if test="query.status != null">
+            AND a.status = #{query.status}
+        </if>
+        <if test="query.status == null and query.userId == null">
+            AND a.status = 2
+        </if>
+        <if test="query.userId != null">
+            AND a.user_id = #{query.userId}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="query.sortBy == 'hottest'">a.view_count DESC</when>
+            <otherwise>a.create_time DESC</otherwise>
+        </choose>
+    </select>
+
+</mapper>
